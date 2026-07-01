@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Daily Spiff — Your Ticket</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Space+Grotesk:wght@400;500;700&display=swap');
+  :root{
+    --paper:#F7F2E7; --card:#FFFCF5; --ink:#1E2340; --ink-soft:rgba(30,35,64,0.62);
+    --line:rgba(30,35,64,0.14); --pin:#D64541; --gold:#E3A857; --gold-deep:#B87F2E; --green:#3E8E6B;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background: var(--paper); color: var(--ink); font-family:'Space Grotesk',sans-serif; padding: 32px 16px 60px; }
+  .wrap{ max-width: 480px; margin: 0 auto; }
+  header{ text-align:center; margin-bottom: 24px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.28em; text-transform:uppercase; color:var(--pin); font-weight:700; margin-bottom:8px; }
+  h1{ font-family:'Fraunces',serif; font-weight:900; font-size: clamp(26px,7vw,38px); margin:0 0 6px; }
+  .sub{ color: var(--ink-soft); font-size: 13.5px; }
+  .panel{ background: var(--card); border:1px solid var(--line); border-radius: 18px; padding: 22px; margin-bottom: 16px; }
+  .panel h2{ font-family:'Fraunces',serif; font-size:17px; margin:0 0 4px; }
+  .desc{ font-size:12px; color: var(--ink-soft); margin-bottom:16px; }
+  .field label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-soft); margin-bottom:6px; }
+  .field input, .field select{ width:100%; font-size:14px; border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:var(--paper); color:var(--ink); font-family:'Space Grotesk'; margin-bottom:14px; }
+  .btn{ font-family:'Space Grotesk'; font-weight:700; font-size:13px; background:var(--ink); color:var(--paper); border:none; border-radius:10px; padding:12px 18px; cursor:pointer; width:100%; }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn.outline{ background:transparent; color:var(--ink); border:1px solid var(--line); }
+  .agent-card{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .agent-card b{ font-size:15px; }
+  .agent-card span{ display:block; font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .sales-count{ text-align:center; }
+  .sales-count .n{ font-family:'Fraunces',serif; font-weight:900; font-size:28px; }
+  .sales-count .l{ font-size:9.5px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-soft); }
+  .privacy-note{ display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--ink-soft); background:rgba(62,142,107,0.08); border:1px solid rgba(62,142,107,0.25); border-radius:10px; padding:10px 12px; margin-bottom:16px; }
+  .privacy-note .dot{ width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; }
+  .pick-grid{ display:grid; grid-template-columns: repeat(6,1fr); gap:8px; margin-bottom:14px; }
+  .pick-num{ aspect-ratio:1; border-radius:50%; border:1px solid var(--line); background:var(--paper); font-weight:600; font-size:14px; color:var(--ink); cursor:pointer; }
+  .pick-num.picked{ background:var(--ink); color:var(--paper); border-color:var(--ink); font-weight:700; }
+  .pick-num:disabled:not(.picked){ opacity:0.32; cursor:not-allowed; }
+  .pick-status{ font-size:11.5px; color:var(--ink-soft); text-align:center; margin-bottom:14px; }
+  .pick-status.done{ color:var(--green); font-weight:700; }
+  .msg{ font-size:12px; text-align:center; margin-top:8px; min-height: 16px; }
+  .msg.error{ color: var(--pin); }
+  .msg.ok{ color: var(--green); }
+  .result-banner{ text-align:center; padding: 14px; border-radius: 12px; margin-bottom: 16px; font-size:13px; }
+  .result-banner.win{ background: rgba(62,142,107,0.12); color: var(--green); font-weight:700; }
+  .result-banner.lose{ background: rgba(30,35,64,0.06); color: var(--ink-soft); }
+  .nav-link{ display:block; text-align:center; font-size:11.5px; color: var(--ink-soft); margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Thumbtack &middot; Daily Spiff</div>
+    <h1>Your ticket</h1>
+    <div class="sub">Log today's sales, then pick your numbers.</div>
+  </header>
+
+  <div class="panel" id="loginPanel">
+    <h2>Who's this?</h2>
+    <div class="desc">Pick your name from the list to check in for today.</div>
+    <div class="field">
+      <label>Your name</label>
+      <select id="nameSelect">
+        <option value="">Loading names…</option>
+      </select>
+    </div>
+    <button class="btn" id="loginBtn">This is me</button>
+    <div class="msg error" id="loginMsg"></div>
+  </div>
+
+  <div id="mainPanel" style="display:none;">
+    <div id="resultBannerWrap"></div>
+    <div class="agent-card">
+      <div><b id="displayName"></b><span>Checked in for today</span></div>
+      <div class="sales-count"><div class="n" id="salesNum">0</div><div class="l">Sales</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Log a sale</h2>
+      <div class="desc">Each FCF sale unlocks one more number to pick.</div>
+      <button class="btn outline" id="addSaleBtn">+ Add a sale</button>
+      <div class="msg" id="saleMsg"></div>
+    </div>
+
+    <div class="panel">
+      <div class="privacy-note"><span class="dot"></span> Only you and the admin can see your numbers.</div>
+      <h2>Pick your numbers</h2>
+      <div class="desc" id="pickDesc">Log a sale to unlock your first number.</div>
+      <div class="pick-grid" id="pickGrid"></div>
+      <div class="pick-status" id="pickStatus"></div>
+      <button class="btn" id="saveNumbersBtn" disabled>Save my numbers</button>
+      <div class="msg" id="pickMsg"></div>
+    </div>
+  </div>
+
+  <a class="nav-link" href="/lobby.html">View the shared lobby &rarr;</a>
+</div>
+
+<script>
+const TOKEN_KEY = 'spiff-agent-token';
+let agent = null;
+let pendingNumbers = [];
+
+async function api(path, opts){
+  const res = await fetch('/api/' + path, opts);
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+async function init(){
+  loadRoster();
+  const token = localStorage.getItem(TOKEN_KEY);
+  if(token){
+    try{
+      const data = await api('me?token=' + encodeURIComponent(token));
+      agent = data.agent;
+      showMain();
+    }catch(e){
+      localStorage.removeItem(TOKEN_KEY);
+    }
+  }
+}
+
+async function loadRoster(){
+  const select = document.getElementById('nameSelect');
+  try{
+    const data = await api('roster');
+    if(data.names.length === 0){
+      select.innerHTML = '<option value="">No names added yet — ask admin</option>';
+      return;
+    }
+    select.innerHTML = '<option value="">Select your name…</option>' +
+      data.names.map(n => `<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)}</option>`).join('');
+  }catch(e){
+    select.innerHTML = '<option value="">Could not load names</option>';
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showMain(){
+  document.getElementById('loginPanel').style.display = 'none';
+  document.getElementById('mainPanel').style.display = 'block';
+  document.getElementById('displayName').textContent = agent.name;
+  pendingNumbers = [...agent.numbers];
+  renderAgent();
+}
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const name = document.getElementById('nameSelect').value;
+  const msg = document.getElementById('loginMsg');
+  msg.textContent = '';
+  if(!name){ msg.textContent = 'Select your name from the list.'; return; }
+  try{
+    const data = await api('checkin', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name })
+    });
+    localStorage.setItem(TOKEN_KEY, data.token);
+    agent = data.agent;
+    showMain();
+  }catch(e){ msg.textContent = e.message; }
+});
+
+document.getElementById('addSaleBtn').addEventListener('click', async () => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const msg = document.getElementById('saleMsg');
+  msg.textContent = '';
+  try{
+    const data = await api('sale', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ token })
+    });
+    agent = data.agent;
+    renderAgent();
+  }catch(e){ msg.textContent = e.message; msg.className='msg error'; }
+});
+
+function renderAgent(){
+  document.getElementById('salesNum').textContent = agent.sales;
+  const need = agent.sales;
+  const grid = document.getElementById('pickGrid');
+  grid.innerHTML = '';
+  const full = pendingNumbers.length >= need;
+
+  for(let n=1;n<=12;n++){
+    const btn = document.createElement('button');
+    btn.className = 'pick-num';
+    btn.type = 'button';
+    btn.textContent = n;
+    const picked = pendingNumbers.includes(n);
+    if(picked) btn.classList.add('picked');
+    if(!picked && (full || need===0)) btn.disabled = true;
+    btn.addEventListener('click', () => {
+      if(pendingNumbers.includes(n)){
+        pendingNumbers = pendingNumbers.filter(x => x !== n);
+      } else if(pendingNumbers.length < need){
+        pendingNumbers.push(n);
+      }
+      renderAgent();
+    });
+    grid.appendChild(btn);
+  }
+
+  const statusEl = document.getElementById('pickStatus');
+  const descEl = document.getElementById('pickDesc');
+  if(need === 0){
+    descEl.textContent = 'Log a sale to unlock your first number.';
+    statusEl.textContent = '';
+  } else {
+    descEl.textContent = `You can choose ${need} number${need===1?'':'s'} — one per sale.`;
+    statusEl.textContent = `${pendingNumbers.length} / ${need} chosen`;
+    statusEl.classList.toggle('done', pendingNumbers.length === need);
+  }
+  document.getElementById('saveNumbersBtn').disabled = pendingNumbers.length !== need || need === 0;
+}
+
+document.getElementById('saveNumbersBtn').addEventListener('click', async () => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const msg = document.getElementById('pickMsg');
+  msg.textContent = '';
+  try{
+    const data = await api('pick', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ token, numbers: pendingNumbers })
+    });
+    agent = data.agent;
+    msg.textContent = 'Saved!';
+    msg.className = 'msg ok';
+  }catch(e){ msg.textContent = e.message; msg.className='msg error'; }
+});
+
+init();
+</script>
+</body>
+</html>
