@@ -102,6 +102,11 @@
     </div>
 
     <div id="hostControls" style="display:none;">
+      <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:12px;">
+        <input type="number" id="potEditInput" placeholder="Set pot ($)" min="0" step="1" style="width:120px;font-size:13px;border:1px solid var(--line);border-radius:9px;padding:9px 12px;background:var(--paper);color:var(--ink);font-family:'Space Grotesk';text-align:center;">
+        <button class="btn outline" id="setPotBtn" style="width:auto;max-width:none;margin:0;padding:9px 16px;font-size:12px;">Update pot</button>
+      </div>
+      <div class="msg" id="potMsg" style="font-size:11.5px;min-height:14px;margin-bottom:8px;"></div>
       <button class="btn" id="drawBtn">Draw the four numbers</button>
       <div class="draw-actions">
         <button class="btn outline" id="nextDayBtn">Next day &rarr;</button>
@@ -189,6 +194,22 @@ document.getElementById('hostUnlockBtn').addEventListener('click', () => {
   hostPassword = val;
   document.getElementById('hostGate').style.display = 'none';
   document.getElementById('hostControls').style.display = 'block';
+});
+
+document.getElementById('setPotBtn').addEventListener('click', async () => {
+  const input = document.getElementById('potEditInput');
+  const msg = document.getElementById('potMsg');
+  msg.textContent = '';
+  const val = input.value;
+  if(val === ''){ msg.textContent = 'Enter an amount.'; return; }
+  try{
+    const result = await api('set-pot', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: hostPassword, pot: Number(val) })
+    });
+    render(result);
+    input.value = '';
+  }catch(e){ msg.textContent = e.message; }
 });
 
 document.getElementById('drawBtn').addEventListener('click', async () => {
