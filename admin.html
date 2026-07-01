@@ -40,15 +40,15 @@
   .stat-card .amt{ font-family:'Fraunces',serif; font-weight:900; font-size:30px; color:var(--gold-deep); }
   .stat-card.day .amt{ color: var(--ink); }
   .stat-card .lbl{ font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-soft); }
-  .cage-wrap{ display:flex; flex-direction:column; align-items:center; margin: 20px 0 10px; }
-  .cage-outer{ width:210px; height:210px; border-radius:50%; position:relative; border:3px dashed rgba(184,127,46,0.45); display:flex; align-items:center; justify-content:center; }
+  .cage-wrap{ display:flex; flex-direction:column; align-items:center; margin: 24px 0 14px; }
+  .cage-outer{ width:340px; height:340px; border-radius:50%; position:relative; border:4px dashed rgba(184,127,46,0.5); display:flex; align-items:center; justify-content:center; }
   .cage-outer.spinning{ animation: cage-spin 0.9s linear infinite; }
   @keyframes cage-spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-  .cage-center{ font-family:'Fraunces',serif; font-weight:900; font-size:12px; text-align:center; color: var(--ink-soft); text-transform:uppercase; letter-spacing:0.1em; line-height:1.4; }
-  .cage-ball{ position:absolute; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12.5px; color:var(--ink); background: radial-gradient(circle at 32% 28%, #fff, #f0e6d2 60%, #d8cba8 100%); box-shadow: 0 2px 6px rgba(0,0,0,0.18); transition: all .25s ease; }
-  .cage-ball.hit{ background: radial-gradient(circle at 32% 28%, #fff, var(--gold) 55%, var(--gold-deep) 100%); box-shadow: 0 0 0 3px rgba(227,168,87,0.35); transform: scale(1.12); }
-  .tray{ display:flex; gap:12px; justify-content:center; min-height:52px; margin: 18px 0 10px; }
-  .tray .ball{ width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; color:var(--ink); background: radial-gradient(circle at 32% 28%, #fff, var(--gold) 55%, var(--gold-deep) 100%); box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity:0; transform: translateY(-16px) scale(0.5); animation: drop .42s cubic-bezier(.34,1.56,.64,1) forwards; }
+  .cage-center{ font-family:'Fraunces',serif; font-weight:900; font-size:18px; text-align:center; color: var(--ink-soft); text-transform:uppercase; letter-spacing:0.12em; line-height:1.4; }
+  .cage-ball{ position:absolute; width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:19px; color:var(--ink); background: radial-gradient(circle at 32% 28%, #fff, #f0e6d2 60%, #d8cba8 100%); box-shadow: 0 3px 8px rgba(0,0,0,0.2); transition: all .25s ease; }
+  .cage-ball.hit{ background: radial-gradient(circle at 32% 28%, #fff, var(--gold) 55%, var(--gold-deep) 100%); box-shadow: 0 0 0 4px rgba(227,168,87,0.35); transform: scale(1.15); }
+  .tray{ display:flex; gap:16px; justify-content:center; min-height:70px; margin: 22px 0 12px; }
+  .tray .ball{ width:62px; height:62px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:22px; color:var(--ink); background: radial-gradient(circle at 32% 28%, #fff, var(--gold) 55%, var(--gold-deep) 100%); box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity:0; transform: translateY(-16px) scale(0.5); animation: drop .42s cubic-bezier(.34,1.56,.64,1) forwards; }
   @keyframes drop{ to{opacity:1; transform: translateY(0) scale(1);} }
   .result-box{ text-align:center; min-height:40px; }
   .result-box .tier{ font-family:'Fraunces',serif; font-weight:900; font-size:18px; margin:0 0 4px; }
@@ -292,9 +292,9 @@ document.getElementById('drawBtn').addEventListener('click', async () => {
   cage.innerHTML = '';
   for(let i=0;i<12;i++){
     const angle = (i/12) * 2 * Math.PI - Math.PI/2;
-    const r = 82;
-    const x = 105 + r*Math.cos(angle) - 18;
-    const y = 105 + r*Math.sin(angle) - 18;
+    const r = 130;
+    const x = 170 + r*Math.cos(angle) - 29;
+    const y = 170 + r*Math.sin(angle) - 29;
     const ball = document.createElement('div');
     ball.className = 'cage-ball';
     ball.id = 'cage-ball-' + (i+1);

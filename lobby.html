@@ -29,15 +29,37 @@
   .chip .dot{ width:6px; height:6px; border-radius:50%; background:var(--green); }
   .chip .n{ color: var(--ink-soft); font-size:10.5px; }
   .empty-note{ font-size:12.5px; color: var(--ink-soft); text-align:center; padding:14px 0; }
-  .tray{ display:flex; gap:14px; justify-content:center; min-height:64px; margin: 8px 0; }
-  .tray .ball{ width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:19px; color:var(--ink); background: radial-gradient(circle at 32% 28%, #fff, var(--gold) 55%, var(--gold-deep) 100%); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+  .cage-wrap{ display:flex; flex-direction:column; align-items:center; margin: 24px 0 14px; }
+  .cage-outer{ width:340px; height:340px; max-width: 88vw; max-height: 88vw; border-radius:50%; position:relative; border:4px dashed rgba(184,127,46,0.5); display:flex; align-items:center; justify-content:center; }
+  .cage-outer.spinning{ animation: cage-spin 0.9s linear infinite; }
+  @keyframes cage-spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+  .cage-center{ font-family:'Fraunces',serif; font-weight:900; font-size:18px; text-align:center; color: var(--ink-soft); text-transform:uppercase; letter-spacing:0.12em; line-height:1.4; }
+  .cage-ball{ position:absolute; width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:19px; color:var(--ink); background: radial-gradient(circle at 32% 28%, #fff, #f0e6d2 60%, #d8cba8 100%); box-shadow: 0 3px 8px rgba(0,0,0,0.2); transition: all .25s ease; }
+  .cage-ball.hit{ background: radial-gradient(circle at 32% 28%, #fff, var(--gold) 55%, var(--gold-deep) 100%); box-shadow: 0 0 0 4px rgba(227,168,87,0.35); transform: scale(1.15); }
+
+  .tray{ display:flex; gap:16px; justify-content:center; min-height:70px; margin: 22px 0 12px; }
+  .tray .ball{ width:62px; height:62px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:22px; color:var(--ink); background: radial-gradient(circle at 32% 28%, #fff, var(--gold) 55%, var(--gold-deep) 100%); box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity:0; transform: translateY(-16px) scale(0.5); animation: drop .42s cubic-bezier(.34,1.56,.64,1) forwards; }
+  @keyframes drop{ to{opacity:1; transform: translateY(0) scale(1);} }
+
   .result-box{ text-align:center; min-height:44px; }
   .result-box .tier{ font-family:'Fraunces',serif; font-weight:900; font-size:22px; margin:0 0 4px; }
   .result-box .tier.win{ color: var(--green); }
   .result-box .tier.none{ color: var(--ink-soft); }
   .result-box .detail{ font-size:13px; color: var(--ink-soft); }
   .winner-name{ font-weight:700; color: var(--ink); }
-  .waiting{ text-align:center; padding: 30px 0; color: var(--ink-soft); font-size: 13px; }
+  .waiting{ text-align:center; padding: 20px 0; color: var(--ink-soft); font-size: 13px; }
+
+  .btn{ font-family:'Space Grotesk'; font-weight:700; font-size:14px; background:var(--pin); color:#fff; border:none; border-radius:10px; padding:14px 18px; cursor:pointer; width:100%; max-width:340px; margin: 6px auto 0; display:block; }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn.outline{ background:transparent; color:var(--ink); border:1px solid var(--line); }
+  .draw-actions{ display:flex; gap:10px; justify-content:center; margin-top: 10px; }
+
+  .gate{ text-align:center; padding: 10px; }
+  .gate input{ font-size:14px; text-align:center; border:1px solid var(--line); border-radius:10px; padding:11px 14px; margin: 10px 0; background:var(--paper); color:var(--ink); width: 220px; }
+  .gate .msg{ font-size:11.5px; color: var(--pin); min-height:14px; }
+  .gate-toggle{ font-size:11px; color: var(--ink-soft); text-decoration:underline; background:none; border:none; cursor:pointer; display:block; margin: 0 auto; }
+
   .back-link{ position:fixed; top:18px; left:18px; display:inline-flex; align-items:center; gap:4px; font-size:12px; color: var(--ink-soft); text-decoration:none; background:var(--card); border:1px solid var(--line); border-radius:999px; padding:8px 14px; z-index:10; }
   .back-link:hover{ color: var(--ink); border-color: var(--ink); }
 </style>
@@ -63,14 +85,39 @@
   </div>
 
   <div class="panel" style="text-align:center;">
-    <h2>Draw results</h2>
-    <div id="drawArea"></div>
+    <h2>Draw</h2>
+    <div class="desc" id="drawDesc">Waiting for today's draw…</div>
+
+    <div class="cage-wrap">
+      <div class="cage-outer" id="cageOuter"><div class="cage-center" id="cageCenter">Ready<br>to draw</div></div>
+    </div>
+
+    <div id="hostGate" class="gate">
+      <button class="gate-toggle" id="showGateBtn">Host? Unlock draw controls</button>
+      <div id="hostGateForm" style="display:none;">
+        <input type="password" id="hostPassInput" placeholder="Password">
+        <div class="msg" id="hostMsg"></div>
+        <button class="btn" id="hostUnlockBtn" style="max-width:220px;">Unlock</button>
+      </div>
+    </div>
+
+    <div id="hostControls" style="display:none;">
+      <button class="btn" id="drawBtn">Draw the four numbers</button>
+      <div class="draw-actions">
+        <button class="btn outline" id="nextDayBtn">Next day &rarr;</button>
+      </div>
+    </div>
+
+    <div class="tray" id="tray"></div>
+    <div class="result-box" id="resultBox"></div>
   </div>
 </div>
 
 <script>
-async function api(path){
-  const res = await fetch('/api/' + path);
+let hostPassword = null;
+
+async function api(path, opts){
+  const res = await fetch('/api/' + path, opts);
   const data = await res.json();
   if(!res.ok) throw new Error(data.error || 'Request failed');
   return data;
@@ -100,20 +147,119 @@ function render(state){
     });
   }
 
-  const drawArea = document.getElementById('drawArea');
+  const drawBtn = document.getElementById('drawBtn');
+  if(drawBtn){
+    drawBtn.disabled = state.drawnToday || state.roster.length === 0;
+    drawBtn.textContent = state.drawnToday ? 'Numbers drawn for today' : 'Draw the four numbers';
+  }
+
+  const tray = document.getElementById('tray');
+  const resultBox = document.getElementById('resultBox');
+  const drawDesc = document.getElementById('drawDesc');
   if(state.drawnToday && state.winningNumbers.length){
-    let html = '<div class="tray">' + state.winningNumbers.map(n => `<div class="ball">${n}</div>`).join('') + '</div>';
+    drawDesc.textContent = '';
+    tray.innerHTML = '';
+    state.winningNumbers.forEach(n => {
+      const b = document.createElement('div');
+      b.className = 'ball';
+      b.textContent = n;
+      tray.appendChild(b);
+    });
     if(state.dayWinners && state.dayWinners.length){
       const names = state.dayWinners.map(w => `<span class="winner-name">${escapeHtml(w.name)}</span>`).join(', ');
-      html += `<div class="result-box"><p class="tier win">We have ${state.dayWinners.length>1?'winners':'a winner'}!</p><p class="detail">${names} matched all four numbers${state.dayWinners.length>1?' — pot splits evenly.':'.'}</p></div>`;
+      resultBox.innerHTML = `<p class="tier win">We have ${state.dayWinners.length>1?'winners':'a winner'}!</p><p class="detail">${names} matched all four numbers${state.dayWinners.length>1?' — pot splits evenly.':'.'}</p>`;
     } else {
-      html += `<div class="result-box"><p class="tier none">No match today</p><p class="detail">The pot rolls into tomorrow.</p></div>`;
+      resultBox.innerHTML = `<p class="tier none">No match today</p><p class="detail">The pot rolls into tomorrow.</p>`;
     }
-    drawArea.innerHTML = html;
   } else {
-    drawArea.innerHTML = '<div class="waiting">Waiting for today\'s draw…</div>';
+    drawDesc.textContent = "Waiting for today's draw…";
+    tray.innerHTML = '';
+    resultBox.innerHTML = '';
   }
 }
+
+document.getElementById('showGateBtn').addEventListener('click', () => {
+  document.getElementById('hostGateForm').style.display = 'block';
+  document.getElementById('showGateBtn').style.display = 'none';
+});
+
+document.getElementById('hostUnlockBtn').addEventListener('click', () => {
+  const val = document.getElementById('hostPassInput').value;
+  if(!val){ document.getElementById('hostMsg').textContent = 'Enter the password.'; return; }
+  hostPassword = val;
+  document.getElementById('hostGate').style.display = 'none';
+  document.getElementById('hostControls').style.display = 'block';
+});
+
+document.getElementById('drawBtn').addEventListener('click', async () => {
+  const cage = document.getElementById('cageOuter');
+  cage.innerHTML = '';
+  for(let i=0;i<12;i++){
+    const angle = (i/12) * 2 * Math.PI - Math.PI/2;
+    const r = 130;
+    const x = 170 + r*Math.cos(angle) - 29;
+    const y = 170 + r*Math.sin(angle) - 29;
+    const ball = document.createElement('div');
+    ball.className = 'cage-ball';
+    ball.id = 'cage-ball-' + (i+1);
+    ball.textContent = i+1;
+    ball.style.left = x + 'px';
+    ball.style.top = y + 'px';
+    cage.appendChild(ball);
+  }
+  const centerLabel = document.createElement('div');
+  centerLabel.className = 'cage-center';
+  centerLabel.textContent = 'Spinning…';
+  cage.appendChild(centerLabel);
+  cage.classList.add('spinning');
+  document.getElementById('drawBtn').disabled = true;
+
+  let result;
+  try{
+    result = await api('draw', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: hostPassword })
+    });
+  }catch(e){
+    cage.classList.remove('spinning');
+    alert(e.message);
+    return;
+  }
+
+  setTimeout(() => {
+    cage.classList.remove('spinning');
+    result.winningNumbers.forEach(n => {
+      const el = document.getElementById('cage-ball-' + n);
+      if(el) el.classList.add('hit');
+    });
+    document.querySelector('#cageOuter .cage-center').textContent = 'Locked in';
+    setTimeout(() => { render(result); animateTray(result.winningNumbers, result); }, 700);
+  }, 1600);
+});
+
+function animateTray(drawn, result){
+  const tray = document.getElementById('tray');
+  tray.innerHTML = '';
+  drawn.forEach((n, i) => {
+    setTimeout(() => {
+      const b = document.createElement('div');
+      b.className = 'ball';
+      b.textContent = n;
+      tray.appendChild(b);
+      if(i === drawn.length - 1) setTimeout(() => render(result), 200);
+    }, i * 220);
+  });
+}
+
+document.getElementById('nextDayBtn').addEventListener('click', async () => {
+  try{
+    const result = await api('nextday', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: hostPassword })
+    });
+    render(result);
+  }catch(e){ alert(e.message); }
+});
 
 function escapeHtml(str){
   const div = document.createElement('div');
@@ -122,7 +268,7 @@ function escapeHtml(str){
 }
 
 refresh();
-setInterval(refresh, 3000);
+setInterval(refresh, 4000);
 </script>
 </body>
 </html>
