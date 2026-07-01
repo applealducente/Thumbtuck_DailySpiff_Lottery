@@ -22,6 +22,16 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'That name is not on the roster yet — ask admin to add you.' });
     }
 
+    // Reuse an existing ticket for this name if one already exists today,
+    // so switching between agents on a shared device doesn't wipe anyone's picks.
+    const existingEntry = Object.entries(state.agents).find(
+      ([, a]) => a.name.toLowerCase() === cleanName.toLowerCase()
+    );
+    if (existingEntry) {
+      const [existingToken, existingAgent] = existingEntry;
+      return res.status(200).json({ token: existingToken, agent: existingAgent });
+    }
+
     const newToken = crypto.randomUUID();
     const agent = { id: newToken, name: cleanName, sales: 0, numbers: [] };
     state.agents[newToken] = agent;
