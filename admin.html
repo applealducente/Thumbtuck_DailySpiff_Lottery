@@ -109,6 +109,7 @@
     </div>
     <div class="tray" id="tray"></div>
     <div class="result-box" id="resultBox"></div>
+    <button class="btn outline full" id="resetBtn" style="margin-top:18px;border-color:var(--pin);color:var(--pin);">Reset everything (testing only)</button>
   </div>
 
   <div class="panel" id="tablePanel" style="display:none;">
@@ -350,6 +351,21 @@ document.getElementById('nextDayBtn').addEventListener('click', async () => {
       body: JSON.stringify({ password: adminPassword })
     });
     renderLobbyState(result);
+  }catch(e){ alert(e.message); }
+});
+
+document.getElementById('resetBtn').addEventListener('click', async () => {
+  const sure = confirm('This wipes everything — all agent names, sales, numbers, the pot, and history. Use this for testing only. Continue?');
+  if(!sure) return;
+  try{
+    const result = await api('reset', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: adminPassword })
+    });
+    renderLobbyState(result);
+    renderTable({ dayIndex: result.dayIndex, pot: result.pot, drawnToday: result.drawnToday, agents: [] });
+    renderRosterChips([]);
+    document.getElementById('cageOuter').innerHTML = '<div class="cage-center">Ready<br>to draw</div>';
   }catch(e){ alert(e.message); }
 });
 </script>
